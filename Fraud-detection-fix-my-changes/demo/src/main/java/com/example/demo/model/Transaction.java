@@ -143,7 +143,7 @@ public static Transaction generateRandom(Customer customer) {
     Random random = new Random();
 
     // Generate a normal or suspicious transaction
-    boolean isSuspicious = random.nextDouble() < 0.7; // 10% chance of fraud
+    boolean isSuspicious = random.nextDouble() < 0.2; // 20% chance of fraud
 
     double amount = isSuspicious ? customer.getMeanSpending() * (20000 + random.nextDouble()) // Unusually large
             : customer.getMeanSpending() * (0.5 + random.nextDouble());
