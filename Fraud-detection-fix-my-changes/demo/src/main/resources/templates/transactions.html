@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Transactions</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Transaction List</h1>
+
+    <form th:action="@{/transactions}" method="get" class="form-inline my-4">
+        <div class="form-group">
+            <label for="userId" class="mr-2">Search by User ID:</label>
+            <input type="text" id="userId" name="userId" class="form-control mr-2" placeholder="Enter User ID" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>User ID</th>
+                <th>Amount</th>
+                <th>IsFraud</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="transaction : ${transactions}">
+                <td th:text="${transaction.id}"></td>
+                <td th:text="${transaction.userId}"></td>
+                <td th:text="${transaction.amount}"></td>
+                <td th:text="${transaction.isFraud}"></td>
+                <td th:text="${transaction.timestamp}"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

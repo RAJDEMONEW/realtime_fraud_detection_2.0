@@ -163,7 +163,7 @@ public static Transaction generateRandom(Customer customer) {
             Instant.now(),
             merchant,
             category,
-            isSuspicious
+            false
     );
 }
 
