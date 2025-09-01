@@ -54,7 +54,7 @@ public class TransactionProducer {
         String embeddingText = transaction.generateEmbeddingText();  
         transaction.setEmbedding(embeddingGenerator.getEmbedding(embeddingText));  
         kafkaTemplate.send(TOPIC, transaction.getTransactionId(), transaction);  
-        logger.info("Transaction sent to topic {}", TOPIC);  
+        logger.info("Transaction sent to topic {}", TOPIC);
         
     }  
 

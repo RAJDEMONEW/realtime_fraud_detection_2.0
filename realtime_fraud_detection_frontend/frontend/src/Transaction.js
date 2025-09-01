@@ -2,7 +2,7 @@
 // import { Client } from "@stomp/stompjs";
 // import SockJS from "sockjs-client";
 
-// function App() {
+// function Transaction() {
 //   const [messages, setMessages] = useState([]);
 
 //   useEffect(() => {
@@ -20,7 +20,7 @@
 //             // remove embedding to avoid heavy data in state
 //             const { embedding, ...transaction } = parsed;
 //             setMessages((prev) => [...prev, transaction]);
-//           }
+//           } 
 //         });
 //       },
 //     });
@@ -69,84 +69,75 @@
 //   );
 // }
 
-// export default App;
+// export default Transaction;
 
 
 
+import React, { useEffect, useState } from "react";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import "./Transaction.css";   // <-- Import CSS file
 
-// import React from "react";
-// import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-// import Signup from "./Signup";
-// import Login from "./Login";
-// // import Dashboard from "./Dashboard";
-
-// function App() {
-//   return (
-//     <Router>
-//       <div>
-//         {/* Navigation links for testing */}
-//         <nav>
-//           <Link to="/signup">Signup</Link> | 
-//           <Link to="/login">Login</Link> 
-//           {/* | <Link to="/dashboard">Dashboard</Link> */}
-//         </nav>
-
-//         <Routes>
-//           <Route path="/signup" element={<Signup />} />
-//           <Route path="/login" element={<Login />} />
-//           {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// }
-
-// export default App;
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
-import Signup from "./Signup";
-import Login from "./Login";
-import Transaction from "./Transaction";
-// import AdminPage from "./AdminPage";
-
-function App() {
-  const [role, setRole] = useState(null);
+function Transaction() {
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("role");
-    if (storedRole) {
-      setRole(storedRole);
-    }
+    const client = new Client({
+      brokerURL: "ws://localhost:8080/ws",
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      reconnectDelay: 5000,
+      debug: (str) => console.log(str),
+      onConnect: () => {
+        console.log("Connected to WebSocket");
+        client.subscribe("/topic/fraud", (message) => {
+          if (message.body) {
+            const parsed = JSON.parse(message.body);
+            const { embedding, ...transaction } = parsed;
+            setMessages((prev) => [...prev, transaction]);
+          }
+        });
+      },
+    });
+
+    client.activate();
+    return () => client.deactivate();
   }, []);
 
-  const handleLogin = (token, role) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    setRole(role);
-  };
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        
-        {/* Protected routes */}
-        {role === "USER" && (
-          <Route path="/transaction" element={<Transaction />} />
-        )}
-        {role === "ADMIN" && (
-          <>
-            <Route path="/transaction" element={<Transaction />} />
-            {/* <Route path="/admin" element={<AdminPage />} /> */}
-          </>
-        )}
-
-        {/* Redirect to login if no role */}
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="transaction-container">
+      <h1 className="title">💳 Live Transactions</h1>
+      <table className="transaction-table">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>User ID</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Merchant</th>
+            <th>Category</th>
+            <th>Is Fraud?</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {messages.map((msg, i) => (
+            <tr key={i}>
+              <td>{msg.transactionId}</td>
+              <td>{msg.userId}</td>
+              <td>{msg.amount.toFixed(2)}</td>
+              <td>{msg.currency}</td>
+              <td>{msg.merchant}</td>
+              <td>{msg.category}</td>
+              <td className={msg.isFraud ? "fraud" : "safe"}>
+                {msg.isFraud ? "Yes 🚨" : "No ✅"}
+              </td>
+              <td>{new Date(msg.timestamp).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-export default App;
+export default Transaction;
