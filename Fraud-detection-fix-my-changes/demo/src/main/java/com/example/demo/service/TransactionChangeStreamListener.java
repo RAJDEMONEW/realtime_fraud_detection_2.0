@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.websocketController;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -23,11 +24,14 @@ public class TransactionChangeStreamListener {
     private final TransactionVectorSearchService vectorSearchService;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final MongoCollection<Document> transactionsCollection;
+    private final websocketController fraudStreamController;
+
 
     public TransactionChangeStreamListener(TransactionVectorSearchService vectorSearchService,
-                                           MongoCollection<Document> transactionsCollection) {
+                                           MongoCollection<Document> transactionsCollection,websocketController fraudStreamController) {
         this.vectorSearchService = vectorSearchService;
         this.transactionsCollection = transactionsCollection;
+        this.fraudStreamController = fraudStreamController;
     }
 
     @PostConstruct

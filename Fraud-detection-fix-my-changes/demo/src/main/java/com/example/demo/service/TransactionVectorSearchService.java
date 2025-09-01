@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.controller.websocketController;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -25,13 +26,15 @@ public class TransactionVectorSearchService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionVectorSearchService.class);
 
     private final MongoCollection<Document> transactionCollection;
+    private final websocketController fraudStreamController;
 
     private static final String VECTOR_INDEX_NAME = "vector_index"; // must match Atlas vector index name
     private static final int SEARCH_LIMIT = 1;
     private static final int NUM_CANDIDATES = 5;
 
-    public TransactionVectorSearchService(MongoCollection<Document> transactionCollection) {
+    public TransactionVectorSearchService(MongoCollection<Document> transactionCollection,websocketController fraudStreamController) {
         this.transactionCollection = transactionCollection;
+        this.fraudStreamController = fraudStreamController;
     }
 
     public void evaluateTransactionFraud(Document transactionDoc) {  
@@ -52,9 +55,13 @@ public class TransactionVectorSearchService {
   
         if (isFraud) {  
             markTransactionAsFraud(transactionId);  
-
-           
         }  
+ Document transactiondoc1 = transactionDoc;
+ transactiondoc1.put("isFraud", isFraud);
+         logger.info("Transaction evaluated for fraud: {}", transactionId);  
+         // Send alert to WebSocket clients
+        // String alert = "Transaction Change: " + transactionDoc.toJson();
+         fraudStreamController.sendFraudEvent(transactiondoc1.toJson());
 
         
 
